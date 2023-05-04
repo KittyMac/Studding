@@ -72,6 +72,14 @@ class SpankerTests: TestsBase {
     func test_s3_listbucket() {
         let xml = s3ListBucket
         xml.parsed { result in
+            
+            if let result = result {
+                print(result["Name"]!.text)
+                print(result["Contents"]!["Owner"]!["ID"]!.text)
+            }
+            
+            print(result!)
+            
             XCTAssertEqual(result?.description, xml.replacingOccurrences(of: " ", with: "").replacingOccurrences(of: "\n", with: ""))
         }
     }
@@ -83,6 +91,6 @@ class SpankerTests: TestsBase {
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
         }
-    }    
+    }
 }
 

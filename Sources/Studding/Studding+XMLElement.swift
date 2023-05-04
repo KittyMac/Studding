@@ -87,18 +87,61 @@ public final class XMLElement: CustomStringConvertible {
 extension XMLElement {
     
     @inlinable @inline(__always)
-    subscript (attribute: HalfHitch) -> HalfHitch? {
+    public func attr(name: String) -> HalfHitch? {
+        guard let index = attributeNames.firstIndex(of: HalfHitch(string: name)) else { return nil }
+        return attributeValues[index]
+    }
+    
+    @inlinable @inline(__always)
+    public func attr(name: StaticString) -> HalfHitch? {
+        guard let index = attributeNames.firstIndex(of: HalfHitch(stringLiteral: name)) else { return nil }
+        return attributeValues[index]
+    }
+    
+    @inlinable @inline(__always)
+    public func attr(name: HalfHitch) -> HalfHitch? {
+        guard let index = attributeNames.firstIndex(of: name) else { return nil }
+        return attributeValues[index]
+    }
+    
+    
+    @inlinable @inline(__always)
+    public subscript (name: String) -> XMLElement? {
         get {
-            guard let index = attributeNames.firstIndex(of: attribute) else { return nil }
-            return attributeValues[index]
+            let halfHitch = HalfHitch(string: name)
+            for child in children where child.name == halfHitch {
+                return child
+            }
+            return nil
         }
     }
     
     @inlinable @inline(__always)
-    subscript (index: Int) -> (HalfHitch,HalfHitch)? {
+    public subscript (name: StaticString) -> XMLElement? {
         get {
-            guard index >= 0 && index < attributeValues.count else { return nil }
-            return (attributeNames[index], attributeValues[index])
+            let halfHitch = HalfHitch(stringLiteral: name)
+            for child in children where child.name == halfHitch {
+                return child
+            }
+            return nil
+        }
+    }
+    
+    @inlinable @inline(__always)
+    public subscript (name: HalfHitch) -> XMLElement? {
+        get {
+            for child in children where child.name == name {
+                return child
+            }
+            return nil
+        }
+    }
+    
+    @inlinable @inline(__always)
+    public subscript (index: Int) -> XMLElement? {
+        get {
+            guard index >= 0 && index < children.count else { return nil }
+            return children[index]
         }
     }
     
