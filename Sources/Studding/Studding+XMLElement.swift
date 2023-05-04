@@ -4,6 +4,7 @@ import Hitch
 public final class XMLElement: CustomStringConvertible {
     public var name: HalfHitch = hitchNone
     public var text: HalfHitch = hitchNone
+    public var cdata: [HalfHitch] = []
     public var attributeNames: [HalfHitch] = []
     public var attributeValues: [HalfHitch] = []
     public var children: [XMLElement] = []
@@ -45,8 +46,28 @@ public final class XMLElement: CustomStringConvertible {
         }
         
         if children.isEmpty {
-            hitch.append(.forwardSlash)
-            hitch.append(.greaterThan)
+            if text.count > 0 {
+                hitch.append(.greaterThan)
+                hitch.append(text)
+                hitch.append(.lessThan)
+                hitch.append(.forwardSlash)
+                hitch.append(name)
+                hitch.append(.greaterThan)
+            } else if cdata.count > 0 {
+                hitch.append(.greaterThan)
+                for data in cdata {
+                    hitch.append("<![CDATA[")
+                    hitch.append(data)
+                    hitch.append("]]>")
+                }
+                hitch.append(.lessThan)
+                hitch.append(.forwardSlash)
+                hitch.append(name)
+                hitch.append(.greaterThan)
+            } else {
+                hitch.append(.forwardSlash)
+                hitch.append(.greaterThan)
+            }
         } else {
             hitch.append(.greaterThan)
             for child in children {

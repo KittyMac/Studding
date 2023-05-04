@@ -50,10 +50,6 @@ extension Studding {
             
             var textStart: UnsafePointer<UInt8>? = nil
             
-            // extra storage, if needed, to be allocated during parsing
-            let extraStorage = Hitch()
-            
-            
             let p: ()->() = {
                 printAround(halfHitch: string,
                             start: raw,
@@ -70,8 +66,8 @@ extension Studding {
                 if let parentXMLElement = xmlElementStack.last,
                    let textStart = textStart {
                     parentXMLElement.text = HalfHitch(source: string,
-                                                      from: textStart - raw,
-                                                      to: elementStart - raw)
+                                                      from: textStart - raw + 1,
+                                                      to: elementStart - raw - 1)
                 }
 
                 // detect comment section
@@ -85,16 +81,19 @@ extension Studding {
                 
                 // if cdata section found, skip data within cdata section and remove cdata tags
                 if (isCDATA == 0) {
+                    elementStart += 9
                     
                     // find end of cdata section
                     let CDATAEnd = strstr(elementStart, rawEnd, "]]>")
                     
-                    extraStorage.append(HalfHitch(sourceObject: nil,
-                                                  raw: elementStart,
-                                                  count: CDATAEnd - elementStart,
-                                                  from: 0,
-                                                  to: CDATAEnd - elementStart))
-                    
+                    if let parentXMLElement = xmlElementStack.last {
+                        parentXMLElement.cdata.append(
+                            HalfHitch(source: string,
+                                      from: elementStart - raw,
+                                      to: CDATAEnd - raw)
+                        )
+                    }
+                                        
                     // find start of next element skipping any cdata sections within text
                     var elementEnd = CDATAEnd
                     
@@ -103,26 +102,25 @@ extension Studding {
                     
                     // if open tag is a cdata section
                     while strncmp(elementEnd, rawEnd, "<![CDATA[") == 0 {
-                        let elementStart = elementEnd
+                        let elementStart = elementEnd + 9
                         
                         // find end of cdata section
                         elementEnd = strstr(elementEnd, rawEnd, "]]>")
                         
-                        extraStorage.append(HalfHitch(sourceObject: nil,
-                                                      raw: elementStart,
-                                                      count: CDATAEnd - elementStart,
-                                                      from: 0,
-                                                      to: CDATAEnd - elementStart))
-                        
+                        if let parentXMLElement = xmlElementStack.last {
+                            parentXMLElement.cdata.append(
+                                HalfHitch(source: string,
+                                          from: elementStart - raw,
+                                          to: elementEnd - raw)
+                            )
+                        }
+                                                
                         // find next open tag
                         elementEnd = strstr1(elementEnd, rawEnd, .lessThan)
                     }
-                    
-                    // at this point, all CDATA elements have been combined into one
-                    // TODO: DO SOMETHING WITH THIS
-                    
+                                        
                     // set new search start position
-                    elementStart = CDATAEnd - 9
+                    elementStart = elementEnd
                 }
                 
                 // find element end, skipping any cdata sections within attributes
@@ -286,9 +284,7 @@ extension Studding {
                     xmlElementStack.append(xmlElement)
                     
                     // set text on element to element end+1
-                    if (elementEnd + 1).pointee != .greaterThan {
-                        textStart = (elementEnd + 1)
-                    }
+                    textStart = elementEnd + 1
                 }
                 
                 // start looking for next element after end of current element

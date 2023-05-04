@@ -41,31 +41,48 @@ class SpankerTests: TestsBase {
             XCTAssertEqual(result?.description, xml)
         }
     }
-    /*
-    func test_s3_cdata() {
+    
+    func test_s3_simple4() {
         let xml = """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <Element>
-            <![CDATA[0123456789]]>
-            <![CDATA[ABCDEFGHIJKLMNOPQRSTUVWXYZ]]>
-        </Element>
+        <A><B/><C/><D/></A>
         """
         xml.parsed { result in
-            
-            print(result)
-            
-            //XCTAssertEqual(json, result?.description)
+            XCTAssertEqual(result?.description, xml)
+        }
+    }
+    
+    func test_s3_simple5() {
+        let xml = """
+        <A><B><C><D/></C></B></A>
+        """
+        xml.parsed { result in
+            XCTAssertEqual(result?.description, xml)
+        }
+    }
+    
+    func test_s3_simple6() {
+        let xml = """
+        <A>Hello World</A>
+        """
+        xml.parsed { result in
+            XCTAssertEqual(result?.description, xml)
         }
     }
     
     func test_s3_listbucket() {
         let xml = s3ListBucket
         xml.parsed { result in
-            
-            print(result)
-            
-            //XCTAssertEqual(json, result?.description)
+            XCTAssertEqual(result?.description, xml.replacingOccurrences(of: " ", with: "").replacingOccurrences(of: "\n", with: ""))
         }
     }
-    */
+    
+    func test_s3_cdata() {
+        let xml = """
+        <Element><![CDATA[0123456789]]><![CDATA[ABCDEFGHIJKLMNOPQRSTUVWXYZ]]></Element>
+        """
+        xml.parsed { result in
+            XCTAssertEqual(result?.description, xml)
+        }
     }
+}
+
