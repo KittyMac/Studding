@@ -44,7 +44,9 @@ extension Studding {
             // set elementStart pointer to the start of our xml
             var elementStart: UnsafePointer<UInt8> = raw
             
-            var parentXMLElement: XMLElement?
+            var xmlElementStack: [XMLElement] = [
+                XMLElement()
+            ]
             
             var textStart: UnsafePointer<UInt8>? = nil
             
@@ -65,7 +67,7 @@ extension Studding {
                 guard elementStart < rawEnd else { break }
                 
                 // finish the text content of the previous element if there is one
-                if let parentXMLElement = parentXMLElement,
+                if let parentXMLElement = xmlElementStack.last,
                    let textStart = textStart {
                     parentXMLElement.text = HalfHitch(source: string,
                                                       from: textStart - raw,
@@ -126,7 +128,7 @@ extension Studding {
                 // find element end, skipping any cdata sections within attributes
                 var elementEnd = elementStart + 1
                 while true {
-                    elementEnd = strpbrk2(elementEnd, rawEnd, .lessThan, .greaterThan)
+                    elementEnd = strpbrk(elementEnd, rawEnd, .lessThan, .greaterThan)
                     if strncmp(elementEnd, rawEnd, "<![CDATA[") == 0 {
                         elementEnd = strstr3(elementEnd, rawEnd, .closeBracket, .closeBracket, .greaterThan) + 3
                     } else {
@@ -150,9 +152,10 @@ extension Studding {
                 // ignore attributes/text if this is a closing element
                 if elementNameStart.pointee == .forwardSlash {
                     elementStart = elementEnd + 1
-                    parentXMLElement = parentXMLElement?.parentElement
-                    if parentXMLElement?.children.isEmpty == false {
-                        parentXMLElement?.text = hitchNone
+                    
+                    _ = xmlElementStack.popLast()
+                    if let parentXMLElement = xmlElementStack.last {
+                        parentXMLElement.text = hitchNone
                     }
                     continue;
                 }
@@ -166,25 +169,22 @@ extension Studding {
                 // create new xmlElement struct
                 let xmlElement = XMLElement()
                 
-                // if there is a parent element
-                if parentXMLElement == nil {
-                    parentXMLElement = xmlElement
-                } else {
-                    xmlElement.parentElement = parentXMLElement
-                    parentXMLElement?.children.append(xmlElement)
-                }
-                
                 // in the following xml the ">" is replaced with \0 by elementEnd.
                 // element may contain no atributes and would return nil while looking for element name end
                 // <tile>
                 // find end of element name
-                let elementNameEnd = strpbrk3(elementNameStart, rawEnd, .space, .forwardSlash, .newLine)
+                let elementNameEnd = strpbrk(elementNameStart, rawEnd, .space, .forwardSlash, .newLine, .lessThan, .carriageReturn, .tab, .greaterThan)
                 guard elementNameEnd < rawEnd else { break }
 
                 // set element name
                 xmlElement.name = HalfHitch(source: string,
                                             from: elementNameStart - raw,
                                             to: elementNameEnd - raw)
+                
+                // if there is a parent element
+                if let parentXMLElement = xmlElementStack.last {
+                    parentXMLElement.children.append(xmlElement)
+                }
                 
                 // if end was found check for attributes
                 var chr = elementNameEnd
@@ -250,7 +250,8 @@ extension Studding {
                                 let value = HalfHitch(source: string,
                                                       from: valueStart - raw,
                                                       to: valueEnd - raw)
-                                xmlElement.attributes[name] = value
+                                xmlElement.attributeNames.append(name)
+                                xmlElement.attributeValues.append(value)
                             }
                             
                             // clear name and value pointers
@@ -281,20 +282,26 @@ extension Studding {
                 
                 // if tag is not self closing, set parent to current element
                 if selfClosingElement == false {
+                    
+                    xmlElementStack.append(xmlElement)
+                    
                     // set text on element to element end+1
                     if (elementEnd + 1).pointee != .greaterThan {
                         textStart = (elementEnd + 1)
                     }
-                    parentXMLElement = xmlElement
                 }
                 
                 // start looking for next element after end of current element
                 elementStart = elementEnd + 1
             }
             
+            #if DEBUG
+            if xmlElementStack.count != 1 {
+                fatalError("unbalanced xmlElementStack")
+            }
+            #endif
             
-            
-            return parentXMLElement
+            return xmlElementStack.first?.children.first
             
         }
     }

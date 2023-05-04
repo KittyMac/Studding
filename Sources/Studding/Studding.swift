@@ -31,19 +31,6 @@ public extension String {
     }
 }
 
-public final class XMLElement: CustomStringConvertible {
-    @inlinable @inline(__always)
-    public var description: String {
-        return "TO BE IMPLEMENTED"
-    }
-    
-    var name: HalfHitch = hitchNone
-    var text: HalfHitch = hitchNone
-    var attributes: [HalfHitch: HalfHitch] = [:]
-    var parentElement: XMLElement? = nil
-    var children: [XMLElement] = []
-}
-
 public enum Studding {
     
     @inlinable @inline(__always)
