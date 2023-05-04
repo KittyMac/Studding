@@ -66,8 +66,8 @@ extension Studding {
                 if let parentXMLElement = xmlElementStack.last,
                    let textStart = textStart {
                     parentXMLElement.text = HalfHitch(source: string,
-                                                      from: textStart - raw + 1,
-                                                      to: elementStart - raw - 1)
+                                                      from: textStart - raw,
+                                                      to: elementStart - raw)
                 }
 
                 // detect comment section

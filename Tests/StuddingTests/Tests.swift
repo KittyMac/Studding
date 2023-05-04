@@ -83,6 +83,6 @@ class SpankerTests: TestsBase {
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
         }
-    }
+    }    
 }
 
