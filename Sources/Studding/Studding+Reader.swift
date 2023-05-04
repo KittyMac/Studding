@@ -1,0 +1,301 @@
+import Foundation
+import Hitch
+
+fileprivate let TBXML_ATTRIBUTE_NAME_START = 0
+fileprivate let TBXML_ATTRIBUTE_NAME_END = 1
+fileprivate let TBXML_ATTRIBUTE_VALUE_START = 2
+fileprivate let TBXML_ATTRIBUTE_VALUE_END = 3
+fileprivate let TBXML_ATTRIBUTE_CDATA_END = 4
+
+extension Studding {
+
+    @usableFromInline
+    internal enum Reader {
+
+        @usableFromInline
+        internal static func parsed<T>(hitch: Hitch, _ callback: (XMLElement?) -> T?) -> T? {
+            return parsed(halfhitch: hitch.halfhitch(), callback)
+        }
+ 
+        @usableFromInline
+        internal static func parsed<T>(string: String, _ callback: (XMLElement?) -> T?) -> T? {
+            return parsed(halfhitch: HalfHitch(string: string), callback)
+        }
+
+        @usableFromInline
+        internal static func parsed<T>(data: Data, _ callback: (XMLElement?) -> T?) -> T? {
+            return HalfHitch.using(data: data) { json in
+                return parsed(halfhitch: json, callback)
+            }
+        }
+
+        @usableFromInline
+        internal static func parsed<T>(halfhitch json: HalfHitch, _ callback: (XMLElement?) -> T?) -> T? {
+            callback(parse(halfhitch: json))
+        }
+
+        @usableFromInline
+        internal static func parse(halfhitch string: HalfHitch) -> XMLElement? {
+            // based on TBXML: https://github.com/codebots-ltd/TBXML
+            
+            guard let raw = string.raw() else { return nil }
+            let rawEnd = raw + string.count
+            
+            // set elementStart pointer to the start of our xml
+            var elementStart: UnsafePointer<UInt8> = raw
+            
+            var parentXMLElement: XMLElement?
+            
+            var textStart: UnsafePointer<UInt8>? = nil
+            
+            // extra storage, if needed, to be allocated during parsing
+            let extraStorage = Hitch()
+            
+            
+            let p: ()->() = {
+                printAround(halfHitch: string,
+                            start: raw,
+                            end: rawEnd,
+                            ptr: elementStart)
+            }
+            
+            // find next element start
+            while true {
+                elementStart = strstr1(elementStart, rawEnd, .lessThan)
+                guard elementStart < rawEnd else { break }
+                
+                // finish the text content of the previous element if there is one
+                if let parentXMLElement = parentXMLElement,
+                   let textStart = textStart {
+                    parentXMLElement.text = HalfHitch(source: string,
+                                                      from: textStart - raw,
+                                                      to: elementStart - raw)
+                }
+
+                // detect comment section
+                if strncmp(elementStart, rawEnd, "<!--") == 0 {
+                    elementStart = strstr(elementStart, rawEnd, "-->") + 3
+                    continue
+                }
+                
+                // detect cdata section within element text
+                let isCDATA = strncmp(elementStart, rawEnd, "<![CDATA[")
+                
+                // if cdata section found, skip data within cdata section and remove cdata tags
+                if (isCDATA == 0) {
+                    
+                    // find end of cdata section
+                    let CDATAEnd = strstr(elementStart, rawEnd, "]]>")
+                    
+                    extraStorage.append(HalfHitch(sourceObject: nil,
+                                                  raw: elementStart,
+                                                  count: CDATAEnd - elementStart,
+                                                  from: 0,
+                                                  to: CDATAEnd - elementStart))
+                    
+                    // find start of next element skipping any cdata sections within text
+                    var elementEnd = CDATAEnd
+                    
+                    // find next open tag
+                    elementEnd = strstr1(elementEnd, rawEnd, .lessThan)
+                    
+                    // if open tag is a cdata section
+                    while strncmp(elementEnd, rawEnd, "<![CDATA[") == 0 {
+                        let elementStart = elementEnd
+                        
+                        // find end of cdata section
+                        elementEnd = strstr(elementEnd, rawEnd, "]]>")
+                        
+                        extraStorage.append(HalfHitch(sourceObject: nil,
+                                                      raw: elementStart,
+                                                      count: CDATAEnd - elementStart,
+                                                      from: 0,
+                                                      to: CDATAEnd - elementStart))
+                        
+                        // find next open tag
+                        elementEnd = strstr1(elementEnd, rawEnd, .lessThan)
+                    }
+                    
+                    // at this point, all CDATA elements have been combined into one
+                    // TODO: DO SOMETHING WITH THIS
+                    
+                    // set new search start position
+                    elementStart = CDATAEnd - 9
+                }
+                
+                // find element end, skipping any cdata sections within attributes
+                var elementEnd = elementStart + 1
+                while true {
+                    elementEnd = strpbrk2(elementEnd, rawEnd, .lessThan, .greaterThan)
+                    if strncmp(elementEnd, rawEnd, "<![CDATA[") == 0 {
+                        elementEnd = strstr3(elementEnd, rawEnd, .closeBracket, .closeBracket, .greaterThan) + 3
+                    } else {
+                        break
+                    }
+                }
+                
+                guard elementEnd < rawEnd else { break }
+                
+                // get element name start
+                let elementNameStart = elementStart + 1
+                
+                // ignore tags that start with ? or ! unless cdata "<![CDATA"
+                if elementNameStart.pointee == .questionMark ||
+                    elementNameStart.pointee == .bang &&
+                    isCDATA != 0 {
+                    elementStart = elementEnd + 1
+                    continue;
+                }
+                
+                // ignore attributes/text if this is a closing element
+                if elementNameStart.pointee == .forwardSlash {
+                    elementStart = elementEnd + 1
+                    parentXMLElement = parentXMLElement?.parentElement
+                    if parentXMLElement?.children.isEmpty == false {
+                        parentXMLElement?.text = hitchNone
+                    }
+                    continue;
+                }
+                
+                // is this element opening and closing
+                var selfClosingElement = false
+                if (elementEnd-1).pointee == .forwardSlash {
+                    selfClosingElement = true
+                }
+                
+                // create new xmlElement struct
+                let xmlElement = XMLElement()
+                
+                // if there is a parent element
+                if parentXMLElement == nil {
+                    parentXMLElement = xmlElement
+                } else {
+                    xmlElement.parentElement = parentXMLElement
+                    parentXMLElement?.children.append(xmlElement)
+                }
+                
+                // in the following xml the ">" is replaced with \0 by elementEnd.
+                // element may contain no atributes and would return nil while looking for element name end
+                // <tile>
+                // find end of element name
+                let elementNameEnd = strpbrk3(elementNameStart, rawEnd, .space, .forwardSlash, .newLine)
+                guard elementNameEnd < rawEnd else { break }
+
+                // set element name
+                xmlElement.name = HalfHitch(source: string,
+                                            from: elementNameStart - raw,
+                                            to: elementNameEnd - raw)
+                
+                // if end was found check for attributes
+                var chr = elementNameEnd
+                var nameStart: UnsafePointer<UInt8>? = nil
+                var nameEnd: UnsafePointer<UInt8>? = nil
+                var valueStart: UnsafePointer<UInt8>? = nil
+                var valueEnd: UnsafePointer<UInt8>? = nil
+                //var CDATAStart: UnsafePointer<UInt8>? = nil
+                //var CDATAEnd: UnsafePointer<UInt8>? = nil
+                var singleQuote = false
+                
+                var mode = TBXML_ATTRIBUTE_NAME_START
+                
+                // loop through all characters within element
+                while chr < elementEnd {
+                    chr += 1
+                    
+                    switch mode {
+                    case TBXML_ATTRIBUTE_NAME_START:
+                        // look for start of attribute name
+                        if isspace(chr.pointee) { continue }
+                        nameStart = chr
+                        mode = TBXML_ATTRIBUTE_NAME_END
+                        break
+                    case TBXML_ATTRIBUTE_NAME_END:
+                        // look for end of attribute name
+                        if isspace(chr.pointee) || chr.pointee == .equal {
+                            nameEnd = chr
+                            mode = TBXML_ATTRIBUTE_VALUE_START
+                        }
+                        break
+                    case TBXML_ATTRIBUTE_VALUE_START:
+                        // look for start of attribute value
+                        if isspace(chr.pointee) { continue }
+                        if chr.pointee == .doubleQuote || chr.pointee == .singleQuote {
+                            valueStart = chr + 1
+                            mode = TBXML_ATTRIBUTE_VALUE_END
+                            if chr.pointee == .singleQuote {
+                                singleQuote = true
+                            } else {
+                                singleQuote = false
+                            }
+                        }
+                        break
+                    
+                    case TBXML_ATTRIBUTE_VALUE_END:
+                        // look for end of attribute value
+                        if chr.pointee == .lessThan && strncmp(chr, rawEnd, "<![CDATA[") == 0 {
+                            mode = TBXML_ATTRIBUTE_CDATA_END
+                        } else if (chr.pointee == .doubleQuote && singleQuote == false) || (chr.pointee == .singleQuote && singleQuote == true) {
+                            valueEnd = chr
+                            
+                            // create new attribute
+                            if let nameStart = nameStart,
+                               let nameEnd = nameEnd,
+                               let valueStart = valueStart,
+                               let valueEnd = valueEnd {
+                                
+                                let name = HalfHitch(source: string,
+                                                     from: nameStart - raw,
+                                                     to: nameEnd - raw)
+                                
+                                let value = HalfHitch(source: string,
+                                                      from: valueStart - raw,
+                                                      to: valueEnd - raw)
+                                xmlElement.attributes[name] = value
+                            }
+                            
+                            // clear name and value pointers
+                            nameStart = nil
+                            nameEnd = nil
+                            valueStart = nil
+                            valueEnd = nil
+                            
+                            // start looking for next attribute
+                            mode = TBXML_ATTRIBUTE_NAME_START
+                        }
+                        break
+                    case TBXML_ATTRIBUTE_CDATA_END:
+                        if chr.pointee == .closeBracket {
+                            if strncmp(chr, rawEnd, "]]>") == 0 {
+                                mode = TBXML_ATTRIBUTE_VALUE_END
+                            }
+                        }
+                        break
+                    default:
+                        #if DEBUG
+                        fatalError("unknown attribute parsing mode")
+                        #endif
+                        break
+                    }
+                }
+                
+                
+                // if tag is not self closing, set parent to current element
+                if selfClosingElement == false {
+                    // set text on element to element end+1
+                    if (elementEnd + 1).pointee != .greaterThan {
+                        textStart = (elementEnd + 1)
+                    }
+                    parentXMLElement = xmlElement
+                }
+                
+                // start looking for next element after end of current element
+                elementStart = elementEnd + 1
+            }
+            
+            
+            
+            return parentXMLElement
+            
+        }
+    }
+}

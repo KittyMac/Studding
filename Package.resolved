@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "hitch",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/KittyMac/Hitch.git",
+      "state" : {
+        "revision" : "627e9f79fb99a068abcd6f23ee0801acc5a6549c",
+        "version" : "0.4.101"
+      }
+    }
+  ],
+  "version" : 2
+}
