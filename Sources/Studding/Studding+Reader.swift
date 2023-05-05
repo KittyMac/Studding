@@ -13,29 +13,29 @@ extension Studding {
     internal enum Reader {
 
         @usableFromInline
-        internal static func parsed<T>(hitch: Hitch, _ callback: (XMLElement?) -> T?) -> T? {
+        internal static func parsed<T>(hitch: Hitch, _ callback: (XmlElement?) -> T?) -> T? {
             return parsed(halfhitch: hitch.halfhitch(), callback)
         }
  
         @usableFromInline
-        internal static func parsed<T>(string: String, _ callback: (XMLElement?) -> T?) -> T? {
+        internal static func parsed<T>(string: String, _ callback: (XmlElement?) -> T?) -> T? {
             return parsed(halfhitch: HalfHitch(string: string), callback)
         }
 
         @usableFromInline
-        internal static func parsed<T>(data: Data, _ callback: (XMLElement?) -> T?) -> T? {
+        internal static func parsed<T>(data: Data, _ callback: (XmlElement?) -> T?) -> T? {
             return HalfHitch.using(data: data) { json in
                 return parsed(halfhitch: json, callback)
             }
         }
 
         @usableFromInline
-        internal static func parsed<T>(halfhitch json: HalfHitch, _ callback: (XMLElement?) -> T?) -> T? {
+        internal static func parsed<T>(halfhitch json: HalfHitch, _ callback: (XmlElement?) -> T?) -> T? {
             callback(parse(halfhitch: json))
         }
 
         @usableFromInline
-        internal static func parse(halfhitch string: HalfHitch) -> XMLElement? {
+        internal static func parse(halfhitch string: HalfHitch) -> XmlElement? {
             // based on TBXML: https://github.com/codebots-ltd/TBXML
             
             guard let raw = string.raw() else { return nil }
@@ -44,8 +44,8 @@ extension Studding {
             // set elementStart pointer to the start of our xml
             var elementStart: UnsafePointer<UInt8> = raw
             
-            var xmlElementStack: [XMLElement] = [
-                XMLElement()
+            var xmlElementStack: [XmlElement] = [
+                XmlElement()
             ]
             
             var textStart: UnsafePointer<UInt8>? = nil
@@ -63,9 +63,9 @@ extension Studding {
                 guard elementStart < rawEnd else { break }
                 
                 // finish the text content of the previous element if there is one
-                if let parentXMLElement = xmlElementStack.last,
+                if let parentXmlElement = xmlElementStack.last,
                    let textStart = textStart {
-                    parentXMLElement.text = HalfHitch(source: string,
+                    parentXmlElement.text = HalfHitch(source: string,
                                                       from: textStart - raw,
                                                       to: elementStart - raw)
                 }
@@ -86,8 +86,8 @@ extension Studding {
                     // find end of cdata section
                     let CDATAEnd = strstr(elementStart, rawEnd, "]]>")
                     
-                    if let parentXMLElement = xmlElementStack.last {
-                        parentXMLElement.cdata.append(
+                    if let parentXmlElement = xmlElementStack.last {
+                        parentXmlElement.cdata.append(
                             HalfHitch(source: string,
                                       from: elementStart - raw,
                                       to: CDATAEnd - raw)
@@ -107,8 +107,8 @@ extension Studding {
                         // find end of cdata section
                         elementEnd = strstr(elementEnd, rawEnd, "]]>")
                         
-                        if let parentXMLElement = xmlElementStack.last {
-                            parentXMLElement.cdata.append(
+                        if let parentXmlElement = xmlElementStack.last {
+                            parentXmlElement.cdata.append(
                                 HalfHitch(source: string,
                                           from: elementStart - raw,
                                           to: elementEnd - raw)
@@ -152,8 +152,8 @@ extension Studding {
                     elementStart = elementEnd + 1
                     
                     _ = xmlElementStack.popLast()
-                    if let parentXMLElement = xmlElementStack.last {
-                        parentXMLElement.text = hitchNone
+                    if let parentXmlElement = xmlElementStack.last {
+                        parentXmlElement.text = hitchNone
                     }
                     continue;
                 }
@@ -165,7 +165,7 @@ extension Studding {
                 }
                 
                 // create new xmlElement struct
-                let xmlElement = XMLElement()
+                let xmlElement = XmlElement()
                 
                 // in the following xml the ">" is replaced with \0 by elementEnd.
                 // element may contain no atributes and would return nil while looking for element name end
@@ -180,8 +180,8 @@ extension Studding {
                                             to: elementNameEnd - raw)
                 
                 // if there is a parent element
-                if let parentXMLElement = xmlElementStack.last {
-                    parentXMLElement.children.append(xmlElement)
+                if let parentXmlElement = xmlElementStack.last {
+                    parentXmlElement.children.append(xmlElement)
                 }
                 
                 // if end was found check for attributes

@@ -4,7 +4,7 @@ import class Foundation.Bundle
 import Studding
 import Hitch
 
-class SpankerTests: TestsBase {
+class StuddingTests: TestsBase {
     
     func test_s3_simple0() {
         let xml = """

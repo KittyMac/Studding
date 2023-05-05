@@ -1,13 +1,13 @@
 import Foundation
 import Hitch
 
-public final class XMLElement: CustomStringConvertible {
+public final class XmlElement: CustomStringConvertible {
     public var name: HalfHitch = hitchNone
     public var text: HalfHitch = hitchNone
     public var cdata: [HalfHitch] = []
     public var attributeNames: [HalfHitch] = []
     public var attributeValues: [HalfHitch] = []
-    public var children: [XMLElement] = []
+    public var children: [XmlElement] = []
     
     @inlinable @inline(__always)
     public var iterAttributes: AttributesIterator {
@@ -84,7 +84,7 @@ public final class XMLElement: CustomStringConvertible {
 }
 
 // Attributes
-extension XMLElement {
+extension XmlElement {
     
     @inlinable @inline(__always)
     public func attr(name: String) -> HalfHitch? {
@@ -106,7 +106,7 @@ extension XMLElement {
     
     
     @inlinable @inline(__always)
-    public subscript (name: String) -> XMLElement? {
+    public subscript (name: String) -> XmlElement? {
         get {
             let halfHitch = HalfHitch(string: name)
             for child in children where child.name == halfHitch {
@@ -117,7 +117,7 @@ extension XMLElement {
     }
     
     @inlinable @inline(__always)
-    public subscript (name: StaticString) -> XMLElement? {
+    public subscript (name: StaticString) -> XmlElement? {
         get {
             let halfHitch = HalfHitch(stringLiteral: name)
             for child in children where child.name == halfHitch {
@@ -128,7 +128,7 @@ extension XMLElement {
     }
     
     @inlinable @inline(__always)
-    public subscript (name: HalfHitch) -> XMLElement? {
+    public subscript (name: HalfHitch) -> XmlElement? {
         get {
             for child in children where child.name == name {
                 return child
@@ -138,7 +138,7 @@ extension XMLElement {
     }
     
     @inlinable @inline(__always)
-    public subscript (index: Int) -> XMLElement? {
+    public subscript (index: Int) -> XmlElement? {
         get {
             guard index >= 0 && index < children.count else { return nil }
             return children[index]
