@@ -61,6 +61,11 @@ public final class XmlElement: CustomStringConvertible {
     @discardableResult
     @inlinable @inline(__always)
     public func exportTo(hitch: Hitch) -> Hitch {
+        
+        if hitch.count == 0 {
+            hitch.append(#"<?xml version="1.0" encoding="UTF-8" ?>"#)
+        }
+        
         hitch.append(.lessThan)
         hitch.append(name)
         

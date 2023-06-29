@@ -8,7 +8,7 @@ class StuddingTests: TestsBase {
     
     func test_s3_simple0() {
         let xml = """
-        <Element/>
+        <?xml version="1.0" encoding="UTF-8" ?><Element/>
         """
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
@@ -20,7 +20,7 @@ class StuddingTests: TestsBase {
     
     func test_s3_simple1() {
         let xml = """
-        <Element key="value"/>
+        <?xml version="1.0" encoding="UTF-8" ?><Element key="value"/>
         """
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
@@ -35,7 +35,7 @@ class StuddingTests: TestsBase {
     
     func test_s3_simple2() {
         let xml = """
-        <Element key0="value0" key1="value1"/>
+        <?xml version="1.0" encoding="UTF-8" ?><Element key0="value0" key1="value1"/>
         """
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
@@ -51,7 +51,7 @@ class StuddingTests: TestsBase {
     
     func test_s3_simple3() {
         let xml = """
-        <A><B/></A>
+        <?xml version="1.0" encoding="UTF-8" ?><A><B/></A>
         """
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
@@ -66,7 +66,7 @@ class StuddingTests: TestsBase {
     
     func test_s3_simple4() {
         let xml = """
-        <A><B/><C/><D/></A>
+        <?xml version="1.0" encoding="UTF-8" ?><A><B/><C/><D/></A>
         """
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
@@ -83,7 +83,7 @@ class StuddingTests: TestsBase {
     
     func test_s3_simple5() {
         let xml = """
-        <A><B><C><D/></C></B></A>
+        <?xml version="1.0" encoding="UTF-8" ?><A><B><C><D/></C></B></A>
         """
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
@@ -98,7 +98,7 @@ class StuddingTests: TestsBase {
     
     func test_s3_simple6() {
         let xml = """
-        <A>Hello World</A>
+        <?xml version="1.0" encoding="UTF-8" ?><A>Hello World</A>
         """
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
@@ -119,13 +119,13 @@ class StuddingTests: TestsBase {
             
             print(result!)
             
-            XCTAssertEqual(result?.description, xml.replacingOccurrences(of: " ", with: "").replacingOccurrences(of: "\n", with: ""))
+            XCTAssertEqual(result?.description.replacingOccurrences(of: " ", with: ""), xml.replacingOccurrences(of: " ", with: "").replacingOccurrences(of: "\n", with: ""))
         }
     }
     
     func test_s3_cdata() {
         let xml = """
-        <Element><![CDATA[0123456789]]><![CDATA[ABCDEFGHIJKLMNOPQRSTUVWXYZ]]></Element>
+        <?xml version="1.0" encoding="UTF-8" ?><Element><![CDATA[0123456789]]><![CDATA[ABCDEFGHIJKLMNOPQRSTUVWXYZ]]></Element>
         """
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
