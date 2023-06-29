@@ -13,6 +13,9 @@ class StuddingTests: TestsBase {
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
         }
+        
+        let root = XmlElement(name: "Element")
+        XCTAssertEqual(root.toString(), xml)
     }
     
     func test_s3_simple1() {
@@ -22,6 +25,12 @@ class StuddingTests: TestsBase {
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
         }
+        
+        let root = XmlElement(name: "Element",
+                              attributes: [
+                                "key": "value"
+                              ])
+        XCTAssertEqual(root.toString(), xml)
     }
     
     func test_s3_simple2() {
@@ -31,6 +40,13 @@ class StuddingTests: TestsBase {
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
         }
+        
+        let root = XmlElement(name: "Element",
+                              attributes: [
+                                "key0": "value0",
+                                "key1": "value1"
+                              ])
+        XCTAssertEqual(root.toString(), xml)
     }
     
     func test_s3_simple3() {
@@ -40,6 +56,12 @@ class StuddingTests: TestsBase {
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
         }
+        
+        let a = XmlElement(name: "A",
+                           children: [
+            XmlElement(name: "B")
+        ])
+        XCTAssertEqual(a.toString(), xml)
     }
     
     func test_s3_simple4() {
@@ -49,6 +71,14 @@ class StuddingTests: TestsBase {
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
         }
+        
+        let a = XmlElement(name: "A",
+                           children: [
+            XmlElement(name: "B"),
+            XmlElement(name: "C"),
+            XmlElement(name: "D")
+        ])
+        XCTAssertEqual(a.toString(), xml)
     }
     
     func test_s3_simple5() {
@@ -58,6 +88,12 @@ class StuddingTests: TestsBase {
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
         }
+        
+        let d = XmlElement(name: "D")
+        let c = XmlElement(name: "C", children: [d])
+        let b = XmlElement(name: "B", children: [c])
+        let a = XmlElement(name: "A", children: [b])
+        XCTAssertEqual(a.toString(), xml)
     }
     
     func test_s3_simple6() {
@@ -67,6 +103,9 @@ class StuddingTests: TestsBase {
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
         }
+        
+        let a = XmlElement(name: "A", text: "Hello World")
+        XCTAssertEqual(a.toString(), xml)
     }
     
     func test_s3_listbucket() {
@@ -91,6 +130,14 @@ class StuddingTests: TestsBase {
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
         }
+        
+        let a = XmlElement(name: "Element",
+                           cdata: [
+                            "0123456789",
+                            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+       ])
+        XCTAssertEqual(a.toString(), xml)
     }
+    
 }
 

@@ -9,6 +9,34 @@ public final class XmlElement: CustomStringConvertible {
     public var attributeValues: [HalfHitch] = []
     public var children: [XmlElement] = []
     
+    public init(name: HalfHitch,
+                text: HalfHitch = "",
+                cdata: [HalfHitch] = [],
+                attributes: [HalfHitch: HalfHitch] = [:],
+                children: [XmlElement] = []) {
+        self.name = name
+        self.text = text
+        self.cdata = cdata
+        self.children = children
+        
+        attributeNames = []
+        attributeValues = []
+        
+        for (key, value) in attributes {
+            attributeNames.append(key)
+            attributeValues.append(value)
+        }
+    }
+    
+    internal init() {
+        self.name = hitchNone
+        self.text = hitchNone
+        self.cdata = []
+        self.attributeNames = []
+        self.attributeValues = []
+        self.children = []
+    }
+    
     @inlinable @inline(__always)
     public var iterAttributes: AttributesIterator {
         return AttributesIterator(keyArray: attributeNames,
