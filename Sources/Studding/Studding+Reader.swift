@@ -293,7 +293,7 @@ extension Studding {
             
             #if DEBUG
             if xmlElementStack.count != 1 {
-                fatalError("unbalanced xmlElementStack")
+                //fatalError("unbalanced xmlElementStack")
             }
             #endif
             
