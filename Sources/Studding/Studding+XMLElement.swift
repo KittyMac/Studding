@@ -127,6 +127,24 @@ public final class XmlElement: CustomStringConvertible {
     @inlinable @inline(__always)
     public func exportJsonTo(hitch: Hitch) -> Hitch {
         
+        func append(hitch other: HalfHitch) {
+            for char in other {
+                switch char {
+                case .newLine:
+                    hitch.append(.backSlash)
+                    hitch.append(.n)
+                case .carriageReturn:
+                    hitch.append(.backSlash)
+                    hitch.append(.r)
+                case .doubleQuote:
+                    hitch.append(.backSlash)
+                    hitch.append(.doubleQuote)
+                default:
+                    hitch.append(char)
+                }
+            }
+        }
+        
         hitch.append(.openBracket)
         
         hitch.append(.doubleQuote)
@@ -134,17 +152,17 @@ public final class XmlElement: CustomStringConvertible {
         hitch.append(.doubleQuote)
         hitch.append(.colon)
         hitch.append(.doubleQuote)
-        hitch.append(name)
+        append(hitch: name)
         hitch.append(.doubleQuote)
         hitch.append(.comma)
         
         for (key, value) in iterAttributes {
             hitch.append(.doubleQuote)
-            hitch.append(key)
+            append(hitch: key)
             hitch.append(.doubleQuote)
             hitch.append(.colon)
             hitch.append(.doubleQuote)
-            hitch.append(value)
+            append(hitch: value)
             hitch.append(.doubleQuote)
             hitch.append(.comma)
         }
@@ -155,7 +173,7 @@ public final class XmlElement: CustomStringConvertible {
             hitch.append(.doubleQuote)
             hitch.append(.colon)
             hitch.append(.doubleQuote)
-            hitch.append(text)
+            append(hitch: text)
             hitch.append(.doubleQuote)
             hitch.append(.comma)
         }
