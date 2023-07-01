@@ -12,6 +12,7 @@ class StuddingTests: TestsBase {
         """
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
+            XCTAssertEqual(result?.toJson(), #"{"xmlElement":"Element"}"#)
         }
         
         let root = XmlElement(name: "Element")
@@ -24,6 +25,7 @@ class StuddingTests: TestsBase {
         """
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
+            XCTAssertEqual(result?.toJson(), #"{"xmlElement":"Element","key":"value"}"#)
         }
         
         let root = XmlElement(name: "Element",
@@ -39,6 +41,7 @@ class StuddingTests: TestsBase {
         """
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
+            XCTAssertEqual(result?.toJson(), #"{"xmlElement":"Element","key0":"value0","key1":"value1"}"#)
         }
         
         let root = XmlElement(name: "Element",
@@ -55,6 +58,7 @@ class StuddingTests: TestsBase {
         """
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
+            XCTAssertEqual(result?.toJson(), #"{"xmlElement":"A","xmlChildren":[{"xmlElement":"B"}]}"#)
         }
         
         let a = XmlElement(name: "A",
@@ -70,6 +74,7 @@ class StuddingTests: TestsBase {
         """
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
+            XCTAssertEqual(result?.toJson(), #"{"xmlElement":"A","xmlChildren":[{"xmlElement":"B"},{"xmlElement":"C"},{"xmlElement":"D"}]}"#)
         }
         
         let a = XmlElement(name: "A",
@@ -87,6 +92,7 @@ class StuddingTests: TestsBase {
         """
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
+            XCTAssertEqual(result?.toJson(), #"{"xmlElement":"A","xmlChildren":[{"xmlElement":"B","xmlChildren":[{"xmlElement":"C","xmlChildren":[{"xmlElement":"D"}]}]}]}"#)
         }
         
         let d = XmlElement(name: "D")
@@ -102,6 +108,7 @@ class StuddingTests: TestsBase {
         """
         xml.parsed { result in
             XCTAssertEqual(result?.description, xml)
+            XCTAssertEqual(result?.toJson(), #"{"xmlElement":"A","xmlText":"Hello World"}"#)
         }
         
         let a = XmlElement(name: "A", text: "Hello World")

@@ -64,6 +64,7 @@ extension Studding {
                 
                 // finish the text content of the previous element if there is one
                 if let parentXmlElement = xmlElementStack.last,
+                   parentXmlElement.children.isEmpty,
                    let textStart = textStart {
                     parentXmlElement.text = HalfHitch(source: string,
                                                       from: textStart - raw,

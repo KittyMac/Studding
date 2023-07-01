@@ -22,9 +22,12 @@ public final class XmlElement: CustomStringConvertible {
         attributeNames = []
         attributeValues = []
         
-        for (key, value) in attributes {
-            attributeNames.append(key)
-            attributeValues.append(value)
+        let keys = attributes.keys.sorted()
+        for key in keys {
+            if let value = attributes[key] {
+                attributeNames.append(key)
+                attributeValues.append(value)
+            }
         }
     }
     
@@ -111,6 +114,73 @@ public final class XmlElement: CustomStringConvertible {
             hitch.append(name)
             hitch.append(.greaterThan)
         }
+        
+        return hitch
+    }
+    
+    @inlinable @inline(__always)
+    public func toJson() -> Hitch {
+        return exportJsonTo(hitch: Hitch(capacity: 1024))
+    }
+    
+    @discardableResult
+    @inlinable @inline(__always)
+    public func exportJsonTo(hitch: Hitch) -> Hitch {
+        
+        hitch.append(.openBracket)
+        
+        hitch.append(.doubleQuote)
+        hitch.append("xmlElement")
+        hitch.append(.doubleQuote)
+        hitch.append(.colon)
+        hitch.append(.doubleQuote)
+        hitch.append(name)
+        hitch.append(.doubleQuote)
+        hitch.append(.comma)
+        
+        for (key, value) in iterAttributes {
+            hitch.append(.doubleQuote)
+            hitch.append(key)
+            hitch.append(.doubleQuote)
+            hitch.append(.colon)
+            hitch.append(.doubleQuote)
+            hitch.append(value)
+            hitch.append(.doubleQuote)
+            hitch.append(.comma)
+        }
+        
+        if text.count > 0 {
+            hitch.append(.doubleQuote)
+            hitch.append("xmlText")
+            hitch.append(.doubleQuote)
+            hitch.append(.colon)
+            hitch.append(.doubleQuote)
+            hitch.append(text)
+            hitch.append(.doubleQuote)
+            hitch.append(.comma)
+        }
+        
+        if children.isEmpty == false {
+            hitch.append(.doubleQuote)
+            hitch.append("xmlChildren")
+            hitch.append(.doubleQuote)
+            hitch.append(.colon)
+            hitch.append(.openBrace)
+            for child in children {
+                child.exportJsonTo(hitch: hitch)
+                hitch.append(.comma)
+            }
+            if hitch.last == .comma {
+                hitch.count -= 1
+            }
+            hitch.append(.closeBrace)
+        }
+        
+        if hitch.last == .comma {
+            hitch.count -= 1
+        }
+        
+        hitch.append(.closeBracket)
         
         return hitch
     }
