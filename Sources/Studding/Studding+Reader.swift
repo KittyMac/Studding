@@ -141,15 +141,15 @@ extension Studding {
                 let elementNameStart = elementStart + 1
                 
                 // ignore tags that start with ? or ! unless cdata "<![CDATA"
-                if elementNameStart.pointee == .questionMark ||
-                    elementNameStart.pointee == .bang &&
+                if elementNameStart[0] == .questionMark ||
+                    elementNameStart[0] == .bang &&
                     isCDATA != 0 {
                     elementStart = elementEnd + 1
                     continue;
                 }
                 
                 // ignore attributes/text if this is a closing element
-                if elementNameStart.pointee == .forwardSlash {
+                if elementNameStart[0] == .forwardSlash {
                     elementStart = elementEnd + 1
                     
                     _ = xmlElementStack.popLast()
@@ -161,7 +161,7 @@ extension Studding {
                 
                 // is this element opening and closing
                 var selfClosingElement = false
-                if (elementEnd-1).pointee == .forwardSlash {
+                if elementEnd[-1] == .forwardSlash {
                     selfClosingElement = true
                 }
                 
@@ -204,24 +204,24 @@ extension Studding {
                     switch mode {
                     case TBXML_ATTRIBUTE_NAME_START:
                         // look for start of attribute name
-                        if isspace(chr.pointee) { continue }
+                        if isspace(chr[0]) { continue }
                         nameStart = chr
                         mode = TBXML_ATTRIBUTE_NAME_END
                         break
                     case TBXML_ATTRIBUTE_NAME_END:
                         // look for end of attribute name
-                        if isspace(chr.pointee) || chr.pointee == .equal {
+                        if isspace(chr[0]) || chr[0] == .equal {
                             nameEnd = chr
                             mode = TBXML_ATTRIBUTE_VALUE_START
                         }
                         break
                     case TBXML_ATTRIBUTE_VALUE_START:
                         // look for start of attribute value
-                        if isspace(chr.pointee) { continue }
-                        if chr.pointee == .doubleQuote || chr.pointee == .singleQuote {
+                        if isspace(chr[0]) { continue }
+                        if chr[0] == .doubleQuote || chr[0] == .singleQuote {
                             valueStart = chr + 1
                             mode = TBXML_ATTRIBUTE_VALUE_END
-                            if chr.pointee == .singleQuote {
+                            if chr[0] == .singleQuote {
                                 singleQuote = true
                             } else {
                                 singleQuote = false
@@ -231,9 +231,9 @@ extension Studding {
                     
                     case TBXML_ATTRIBUTE_VALUE_END:
                         // look for end of attribute value
-                        if chr.pointee == .lessThan && strncmp(chr, rawEnd, "<![CDATA[") == 0 {
+                        if chr[0] == .lessThan && strncmp(chr, rawEnd, "<![CDATA[") == 0 {
                             mode = TBXML_ATTRIBUTE_CDATA_END
-                        } else if (chr.pointee == .doubleQuote && singleQuote == false) || (chr.pointee == .singleQuote && singleQuote == true) {
+                        } else if (chr[0] == .doubleQuote && singleQuote == false) || (chr[0] == .singleQuote && singleQuote == true) {
                             valueEnd = chr
                             
                             // create new attribute
@@ -264,7 +264,7 @@ extension Studding {
                         }
                         break
                     case TBXML_ATTRIBUTE_CDATA_END:
-                        if chr.pointee == .closeBracket {
+                        if chr[0] == .closeBracket {
                             if strncmp(chr, rawEnd, "]]>") == 0 {
                                 mode = TBXML_ATTRIBUTE_VALUE_END
                             }

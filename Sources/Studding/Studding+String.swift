@@ -10,9 +10,9 @@ internal func strstr3(_ raw: UnsafePointer<UInt8>,
                       _ b2: UInt8) -> UnsafePointer<UInt8> {
     var ptr = raw
     while ptr < end - 3 {
-        if ptr.pointee == b0 &&
-            (ptr + 1).pointee == b1 &&
-            (ptr + 2).pointee == b2 {
+        if ptr[0] == b0 &&
+            ptr[1] == b1 &&
+            ptr[2] == b2 {
             return ptr
         }
         ptr += 1
@@ -27,8 +27,8 @@ internal func strstr2(_ raw: UnsafePointer<UInt8>,
                       _ b1: UInt8) -> UnsafePointer<UInt8> {
     var ptr = raw
     while ptr < end - 2 {
-        if ptr.pointee == b0 &&
-            (ptr + 1).pointee == b1 {
+        if ptr[0] == b0 &&
+            ptr[1] == b1 {
             return ptr
         }
         ptr += 1
@@ -42,7 +42,7 @@ internal func strstr1(_ raw: UnsafePointer<UInt8>,
                       _ b0: UInt8) -> UnsafePointer<UInt8> {
     var ptr = raw
     while ptr < end {
-        if ptr.pointee == b0 {
+        if ptr[0] == b0 {
             return ptr
         }
         ptr += 1
@@ -78,7 +78,7 @@ internal func strpbrk(_ raw: UnsafePointer<UInt8>,
                       _ params: UInt8...) -> UnsafePointer<UInt8> {
     var ptr = raw
     while ptr < end {
-        if params.contains(ptr.pointee) {
+        if params.contains(ptr[0]) {
             return ptr
         }
         ptr += 1
