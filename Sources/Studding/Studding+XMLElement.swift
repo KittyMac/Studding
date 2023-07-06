@@ -40,29 +40,29 @@ public final class XmlElement: CustomStringConvertible {
         self.children = []
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     public var iterAttributes: AttributesIterator {
         return AttributesIterator(keyArray: attributeNames,
                                   valueArray: attributeValues)
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     public var description: String {
         return exportTo(hitch: Hitch(capacity: 1024)).description
     }
 
-    @inlinable @inline(__always)
+    @inlinable
     public func toString() -> String {
         return exportTo(hitch: Hitch(capacity: 1024)).toString()
     }
 
-    @inlinable @inline(__always)
+    @inlinable
     public func toHitch() -> Hitch {
         return exportTo(hitch: Hitch(capacity: 1024))
     }
     
     @discardableResult
-    @inlinable @inline(__always)
+    @inlinable
     public func exportTo(hitch: Hitch) -> Hitch {
         
         if hitch.count == 0 {
@@ -118,13 +118,13 @@ public final class XmlElement: CustomStringConvertible {
         return hitch
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     public func toJson() -> Hitch {
         return exportJsonTo(hitch: Hitch(capacity: 1024))
     }
     
     @discardableResult
-    @inlinable @inline(__always)
+    @inlinable
     public func exportJsonTo(hitch: Hitch) -> Hitch {
         
         func append(hitch other: HalfHitch) {
@@ -207,26 +207,26 @@ public final class XmlElement: CustomStringConvertible {
 // Attributes
 extension XmlElement {
     
-    @inlinable @inline(__always)
+    @inlinable
     public func attr(name: String) -> HalfHitch? {
         guard let index = attributeNames.firstIndex(of: HalfHitch(string: name)) else { return nil }
         return attributeValues[index]
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     public func attr(name: StaticString) -> HalfHitch? {
         guard let index = attributeNames.firstIndex(of: HalfHitch(stringLiteral: name)) else { return nil }
         return attributeValues[index]
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     public func attr(name: HalfHitch) -> HalfHitch? {
         guard let index = attributeNames.firstIndex(of: name) else { return nil }
         return attributeValues[index]
     }
     
     
-    @inlinable @inline(__always)
+    @inlinable
     public subscript (name: String) -> XmlElement? {
         get {
             let halfHitch = HalfHitch(string: name)
@@ -237,7 +237,7 @@ extension XmlElement {
         }
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     public subscript (name: StaticString) -> XmlElement? {
         get {
             let halfHitch = HalfHitch(stringLiteral: name)
@@ -248,7 +248,7 @@ extension XmlElement {
         }
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     public subscript (name: HalfHitch) -> XmlElement? {
         get {
             for child in children where child.name == name {
@@ -258,7 +258,7 @@ extension XmlElement {
         }
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     public subscript (index: Int) -> XmlElement? {
         get {
             guard index >= 0 && index < children.count else { return nil }
@@ -291,7 +291,7 @@ extension XmlElement {
 #endif
         }
         
-        @inlinable @inline(__always)
+        @inlinable
         public mutating func next() -> (HalfHitch, HalfHitch)? {
             guard index < countMinusOne else { return nil }
             index += 1

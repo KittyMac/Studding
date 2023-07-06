@@ -2,7 +2,7 @@ import Foundation
 import Hitch
 
 
-@inlinable @inline(__always)
+@inlinable
 internal func strstr3(_ raw: UnsafePointer<UInt8>,
                       _ end: UnsafePointer<UInt8>,
                       _ b0: UInt8,
@@ -20,7 +20,7 @@ internal func strstr3(_ raw: UnsafePointer<UInt8>,
     return end
 }
 
-@inlinable @inline(__always)
+@inlinable
 internal func strstr2(_ raw: UnsafePointer<UInt8>,
                       _ end: UnsafePointer<UInt8>,
                       _ b0: UInt8,
@@ -36,7 +36,7 @@ internal func strstr2(_ raw: UnsafePointer<UInt8>,
     return end
 }
 
-@inlinable @inline(__always)
+@inlinable
 internal func strstr1(_ raw: UnsafePointer<UInt8>,
                       _ end: UnsafePointer<UInt8>,
                       _ b0: UInt8) -> UnsafePointer<UInt8> {
@@ -50,7 +50,7 @@ internal func strstr1(_ raw: UnsafePointer<UInt8>,
     return end
 }
 
-@inlinable @inline(__always)
+@inlinable
 internal func strstr(_ raw: UnsafePointer<UInt8>,
                      _ end: UnsafePointer<UInt8>,
                      _ match: HalfHitch) -> UnsafePointer<UInt8> {
@@ -65,14 +65,14 @@ internal func strstr(_ raw: UnsafePointer<UInt8>,
 }
 
 
-@inlinable @inline(__always)
+@inlinable
 internal func strncmp(_ raw: UnsafePointer<UInt8>,
                       _ end: UnsafePointer<UInt8>,
                       _ match: HalfHitch) -> Int {
     return match.startsAt(raw: raw, count: end - raw) ? 0 : 1
 }
 
-@inlinable @inline(__always)
+@inlinable
 internal func strpbrk(_ raw: UnsafePointer<UInt8>,
                       _ end: UnsafePointer<UInt8>,
                       _ params: UInt8...) -> UnsafePointer<UInt8> {
@@ -86,12 +86,12 @@ internal func strpbrk(_ raw: UnsafePointer<UInt8>,
     return end
 }
 
-@inlinable @inline(__always)
+@inlinable
 internal func isspace(_ c: UInt8) -> Bool {
     return c == .space || c == .newLine || c == .carriageReturn || c == .tab || c == .lineFeed
 }
 
-@inlinable @inline(__always)
+@inlinable
 internal func printAround(halfHitch: HalfHitch,
                           start: UnsafePointer<UInt8>,
                           end: UnsafePointer<UInt8>,
